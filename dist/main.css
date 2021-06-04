@@ -1,0 +1,139 @@
+/* Variables */
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500&display=swap");
+
+:root {
+  --font-primary: "Montserrat", sans-serif;
+  --font-regular: 400;
+  --font-medium: 500;
+  --color-primary-dark: #111;
+  --color-primary-white: #fff;
+  --color-secondary: rgb(4, 69, 155);
+  --layout-padding-container: 4.5rem;
+}
+
+/* Global Styles */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-primary);
+  font-weight: var(--font-regular);
+  font-size: 18px;
+  background: url("../images/luke-chesser-pJadQetzTkI-unsplash.jpg");
+}
+
+li {
+  list-style: none;
+}
+
+a {
+  text-decoration: none;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-weight: 500;
+}
+/* Utils */
+.container {
+  padding: var(--layout-padding-container);
+  text-align: center;
+}
+.game-container {
+  background-color: var(--color-primary-white);
+  width: 70%;
+  height: 80%;
+  margin: auto;
+  border-radius: 15px;
+  padding: 2.5rem;
+}
+
+.fa-custom {
+  color: var(--color-secondary);
+}
+
+.active_player {
+  background-color: rgb(199, 160, 235);
+  border-radius: 15px;
+  transition: background-color 0.2s ease-in;
+}
+
+#reset-btn {
+  margin-left: 2rem;
+}
+/* Specific Styles */
+.title-text {
+  color: var(--color-primary-white);
+  margin-bottom: 4rem;
+  font-size: 50px;
+}
+.controls-bar ul {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  margin-bottom: 4.5rem;
+}
+
+.players_board {
+  display: flex;
+  flex-direction: row;
+}
+.board {
+  padding: 2.5rem;
+  width: 60%;
+  height: 70%;
+  margin: auto;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  grid-gap: 2px;
+  border: 3px solid rgb(29, 109, 214);
+  border-radius: 15px;
+  box-shadow: 1px 1px 3px rgb(62, 62, 243);
+  background-color: rgba(238, 242, 245, 0.4);
+}
+
+.board-block {
+  text-align: center;
+  height: 100px;
+  width: 100px;
+  border: 2px solid var(--color-secondary);
+  border-radius: 15px;
+  cursor: pointer;
+}
+
+.players_dash {
+  margin: auto;
+}
+.players_dash ul{
+  
+  background-color: rgb(233, 233, 247);
+  padding: 2rem;
+  border-radius: 15px;
+  box-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+.player_avatar {
+  padding: 1.2rem;
+  font-size: 18px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.player_avatar i {
+  color: rgb(166, 96, 231);
+  margin-right: 1rem;
+  
+}
+
+.player_avatar p {
+  margin-top: 1rem;
+}
+
