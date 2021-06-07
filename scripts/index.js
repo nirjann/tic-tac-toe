@@ -2,6 +2,7 @@ console.log("script loaded");
 
 // Globals
 let players = [];
+let godMode = false;
 
 // data about the board
 //gameboard init
@@ -72,7 +73,7 @@ let Player = (userName, token, index, active) => {
 let board = gameBoard();
 board.init_board();
 
-// game winning logic
+// game logic
 function isWin(board) {
   let winnerName = null;
 
@@ -109,7 +110,7 @@ function isWin(board) {
       if (board.getBoardStates(index_x, index_y) == "x") {
         winnerName = players[0].userName;
       } else {
-        winnerName = player[1].userName;
+        winnerName = players[1].userName;
       }
     }
   }
@@ -148,10 +149,91 @@ function isWin(board) {
     }
   }
 
+  let tieCounter = 0;
+  for (index_x = 0; index_x < 3; index_x++) {
+    for (index_y = 0; index_y < 3; index_y++) {
+      if (board.getBoardStates(index_x, index_y) != "") tieCounter++;
+    }
+  }
   // anouncing the winner
   if (winnerName) alert(`game Over...Winner ${winnerName}`);
+  if (tieCounter == 9) alert("Its a tie");
+}
 
-  // checking
+let scores = {
+  x: -1,
+  o: 1,
+  tie: 0,
+};
+// God's Move
+function minimax(board, depth, isMaximizing) {
+  return 1;
+}
+
+function makeGodMove() {
+  let bestScore = -Infinity;
+  let bestMove;
+  console.log("God Move");
+  for (let i = 0; i < 3; i++) {
+    for (let j = 0; j < 3; j++) {
+      if (board.getBoardStates(i, j) == "") {
+        board.setBoardState(i, j, "o");
+        let score = minimax(board, 0, true);
+        bestScore = Math.max(score, bestScore);
+        bestMove = { i, j };
+        board.setBoardState(i, j, "");
+      }
+    }
+  }
+  console.dir(bestMove);
+  board.setBoardState(bestMove.i, bestMove.j, "o");
+  let displayContl = displayController(board);
+  displayContl.displayBoard();
+}
+
+function makeMove(item) {
+  let index_x = item.getAttribute("index_x");
+  let index_y = item.getAttribute("index_y");
+
+  //getting the active player
+  let activePlayer;
+  let altPlayer;
+  players.forEach((player) => {
+    player.active ? (activePlayer = player) : (altPlayer = player);
+  });
+  let token = activePlayer.token;
+
+  //setting the board with user input
+  if (board.getBoardStates(index_x, index_y) == "") {
+    board.setBoardState(index_x, index_y, token);
+  } else {
+    alert("Sorry! This move is not allowed");
+  }
+  let displayContl = displayController(board);
+  displayContl.displayBoard();
+
+  // ai move if the current player is god
+  
+
+  // confirm if there is a winner
+  
+
+  // toggle active player
+  let togglePlayer = () => {
+    altPlayer.active = true;
+    activePlayer.active = false;
+    let tempPlayer;
+    tempPlayer = activePlayer;
+    activePlayer = altPlayer;
+    altPlayer = tempPlayer;
+  }
+  togglePlayer();
+
+  if (activePlayer.userName == "God") {
+    makeGodMove();
+    togglePlayer();
+  }
+  isWin(board);
 }
 
 // DOM specific functions
@@ -169,11 +251,9 @@ function addPlayersToDash(player) {
   li.classList.add("player_avatar");
   li.id = `player-${player.index}-avatar`;
   if (player.token == "x") {
-  
-   
     li.innerHTML = `<i class="fas fa-times fa-3x"></i>
     <p id="player-${player.index}-name">${player.userName}</p>`;
-  } else  {
+  } else {
     li.innerHTML = `<i class="fas fa-circle fa-3x"></i>
     <p id="player-${player.index}-name">${player.userName}</p>`;
   }
@@ -182,7 +262,7 @@ function addPlayersToDash(player) {
 }
 
 function clearDash() {
-  let playerList = document.getElementById('players-list');
+  let playerList = document.getElementById("players-list");
   playerList.innerHTML = "";
 }
 
@@ -230,49 +310,36 @@ document.addEventListener("click", (event) => {
   }
 
   // reset button
-  if (target.id == 'reset-btn') {
-    console.log('reset btn clicked');
+  if (target.id == "reset-btn") {
+    console.log("reset btn clicked");
     event.preventDefault();
     resetGame(board);
     let displayContl = displayController(board);
     displayContl.displayBoard();
     clearDash();
   }
+
+  // AI play button
+  if (target.id == "god-btn") {
+    event.preventDefault();
+    if (players.length == 2) {
+      alert("Already two players added");
+    } else if (players.length == 0) {
+      alert("You must add a player first!");
+    } else {
+      godMode = true;
+      let god = Player("God", "o", 2, false);
+      players.push(god);
+      addPlayersToDash(god);
+      console.dir(players);
+    }
+  }
 });
 
 let board_blocks = document.querySelectorAll(".board-block");
 board_blocks.forEach((item) => {
   item.addEventListener("click", (event) => {
-    event.stopPropagation();
-
-    let index_x = item.getAttribute("index_x");
-    let index_y = item.getAttribute("index_y");
-
-    //getting the active player
-    let activePlayer;
-    let altPlayer;
-    players.forEach((player) => {
-      player.active ? (activePlayer = player) : (altPlayer = player);
-    });
-    let token = activePlayer.token;
-
-    //setting the board with user input
-    if (board.getBoardStates(index_x, index_y) == "") {
-      board.setBoardState(index_x, index_y, token);
-    } else {
-      alert("Sorry! This move is not allowed");
-    }
-    let displayContl = displayController(board);
-    displayContl.displayBoard();
-
-    // confirm if there is a winner
-    isWin(board);
-    // toggle active player
-    altPlayer.active = true;
-    activePlayer.active = false;
-    let tempPlayer;
-    tempPlayer = activePlayer;
-    activePlayer = altPlayer;
-    altPlayer = tempPlayer;
+    event.preventDefault();
+    makeMove(item);
   });
 });
