@@ -3,12 +3,23 @@ console.log("script loaded");
 // Globals
 let players = [];
 let godMode = false;
+let result = null;
+let scores = {
+  x: -10,
+  o: 10,
+  tie: 0,
+};
 
 // data about the board
 //gameboard init
 let gameBoard = function () {
   "use strict";
   let _board = [];
+  let _rowContainer = [0,0,0];
+  let _columnContainer = [0,0,0];
+  let _diagContainer = [0,0,0];
+  let _oppositeDiagContainer = [0,0,0];
+
   function init_board() {
     for (let i = 0; i < 3; i++) {
       _board.push(["", "", ""]);
@@ -34,6 +45,7 @@ let gameBoard = function () {
     getBoardStates,
     setBoardState,
     resetBoard,
+    
   };
 };
 
@@ -75,9 +87,8 @@ board.init_board();
 
 // game logic
 function isWin(board) {
-  let winnerName = null;
-
-  // checking the rows
+  let result = null;
+  //checking the rows
   let index_x = 0;
   let index_y = 0;
 
@@ -90,9 +101,9 @@ function isWin(board) {
         board.getBoardStates(index_x, index_y + 1)
     ) {
       if (board.getBoardStates(index_x, index_y) == "x") {
-        winnerName = players[0].userName;
+        result = "x";
       } else {
-        winnerName = players[1].userName;
+        result = "o";
       }
     }
   }
@@ -108,9 +119,9 @@ function isWin(board) {
         board.getBoardStates(index_x + 1, index_y)
     ) {
       if (board.getBoardStates(index_x, index_y) == "x") {
-        winnerName = players[0].userName;
+        result = "x";
       } else {
-        winnerName = players[1].userName;
+        result = "o";
       }
     }
   }
@@ -126,9 +137,9 @@ function isWin(board) {
       board.getBoardStates(index_x + 1, index_y + 1)
   ) {
     if (board.getBoardStates(index_x, index_y) == "x") {
-      winnerName = players[0].userName;
+      result = "x";
     } else {
-      winnerName = player[1].userName;
+      result = "o";
     }
   }
 
@@ -143,9 +154,9 @@ function isWin(board) {
       board.getBoardStates(index_x + 1, index_y - 1)
   ) {
     if (board.getBoardStates(index_x, index_y) == "x") {
-      winnerName = players[0].userName;
+      result = "x";
     } else {
-      winnerName = player[1].userName;
+      result = "o";
     }
   }
 
@@ -155,37 +166,71 @@ function isWin(board) {
       if (board.getBoardStates(index_x, index_y) != "") tieCounter++;
     }
   }
-  // anouncing the winner
-  if (winnerName) alert(`game Over...Winner ${winnerName}`);
-  if (tieCounter == 9) alert("Its a tie");
+  
+  if (result == null && tieCounter == 9) {
+    result = "tie";
+  }
+  return result;
 }
 
-let scores = {
-  x: -1,
-  o: 1,
-  tie: 0,
-};
 // God's Move
 function minimax(board, depth, isMaximizing) {
-  return 1;
+  // terminal condition
+  let _ = isWin(board);
+  
+  if (_ != null) {
+    let score = scores[_];
+    return score;
+  }
+    
+
+  if (isMaximizing) {
+    let bestScore = -1000;
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        if (board.getBoardStates(i, j) == "") {
+          board.setBoardState(i, j, "o");
+          let score = minimax(board, depth + 1, false);
+          board.setBoardState(i, j, "");
+          bestScore = Math.max(score, bestScore);
+        }
+      }
+    }
+    return bestScore;
+  } else {
+    let bestScore = 1000;
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        if (board.getBoardStates(i, j) == "") {
+          board.setBoardState(i, j, "x");
+          let score = minimax(board, depth + 1, true);
+          board.setBoardState(i, j, "");
+          bestScore = Math.min(score, bestScore);
+        }
+      }
+    }
+    return bestScore;
+  }
 }
 
 function makeGodMove() {
-  let bestScore = -Infinity;
+  let bestScore = -1000;
   let bestMove;
   console.log("God Move");
   for (let i = 0; i < 3; i++) {
     for (let j = 0; j < 3; j++) {
       if (board.getBoardStates(i, j) == "") {
         board.setBoardState(i, j, "o");
-        let score = minimax(board, 0, true);
-        bestScore = Math.max(score, bestScore);
-        bestMove = { i, j };
+        let score = minimax(board, 0, false);
         board.setBoardState(i, j, "");
+        if (score > bestScore) {
+          bestScore = score;
+          bestMove = { i, j };
+        }
       }
     }
   }
-  console.dir(bestMove);
+  console.log(bestMove);
   board.setBoardState(bestMove.i, bestMove.j, "o");
   let displayContl = displayController(board);
   displayContl.displayBoard();
@@ -212,12 +257,6 @@ function makeMove(item) {
   let displayContl = displayController(board);
   displayContl.displayBoard();
 
-  // ai move if the current player is god
-  
-
-  // confirm if there is a winner
-  
-
   // toggle active player
   let togglePlayer = () => {
     altPlayer.active = true;
@@ -226,14 +265,23 @@ function makeMove(item) {
     tempPlayer = activePlayer;
     activePlayer = altPlayer;
     altPlayer = tempPlayer;
-  }
+  };
   togglePlayer();
 
   if (activePlayer.userName == "God") {
     makeGodMove();
     togglePlayer();
   }
-  isWin(board);
+
+  result = isWin(board);
+  let score = scores[result];
+  if (score == 10) {
+    alert(`${players[1].userName} Won!!`);
+  } else if (score == -10) {
+    alert(`${players[0].userName} Won!!`);
+  } else if (score == 0) {
+    alert("It's a TIE");
+  }
 }
 
 // DOM specific functions
@@ -327,7 +375,7 @@ document.addEventListener("click", (event) => {
     } else if (players.length == 0) {
       alert("You must add a player first!");
     } else {
-      godMode = true;
+     
       let god = Player("God", "o", 2, false);
       players.push(god);
       addPlayersToDash(god);
